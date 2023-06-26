@@ -68,7 +68,7 @@ pipeline {
                                 ORO_FORMATTING_CODE = 'de_DE'
                             }
                             steps {
-                                dir("/dev/shm/${EXECUTOR_NUMBER}/$ORO_APP") {
+                                dir("/dev/shm/${EXECUTOR_NUMBER}") {
                                     sh '''
                                         docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
                                         docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
@@ -87,7 +87,7 @@ pipeline {
                                 ORO_FORMATTING_CODE = 'fr_FR'
                             }
                             steps {
-                                dir("/dev/shm/${EXECUTOR_NUMBER}/$ORO_APP") {
+                                dir("/dev/shm/${EXECUTOR_NUMBER}") {
                                     sh '''
                                         docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
                                         docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
