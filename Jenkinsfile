@@ -231,6 +231,9 @@ pipeline {
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-functional-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/functional logs" ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/junit logs" ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/behat logs" ||:
+                docker compose -p prod_${EXECUTOR_NUMBER} --project-directory /dev/shm/${EXECUTOR_NUMBER}/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
+                docker compose -p test_${EXECUTOR_NUMBER} --project-directory /dev/shm/${EXECUTOR_NUMBER}_1/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
+                rm -rf /dev/shm/${EXECUTOR_NUMBER}* ||:
             '''
             dir("logs") {
                 archiveArtifacts defaultExcludes: false, allowEmptyArchive: true, artifacts: '**', excludes: '**/*.sql', caseSensitive: false
