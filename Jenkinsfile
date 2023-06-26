@@ -155,8 +155,8 @@ pipeline {
                                         docker compose -p test_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --quiet-pull --exit-code-from install-test install-test
                                         rm -rf .build/docker/public_storage
                                         rm -rf .build/docker/private_storage
-                                        docker cp test_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
-                                        docker cp test_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
+                                        docker cp test_${EXECUTOR_NUMBER}-install-test-1:/var/www/oro/public/media/ .build/docker/public_storage
+                                        docker cp test_${EXECUTOR_NUMBER}-install-test-1:/var/www/oro/var/data/ .build/docker/private_storage
                                         DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' test_${EXECUTOR_NUMBER}-db-1) docker compose -p test_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml build backup-test
                                     '''
                                 }
