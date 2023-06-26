@@ -203,7 +203,7 @@ pipeline {
                     // gcloud ${credentials} auth configure-docker
                     // set -x
                 sh '''
-                    docker image ls
+                    docker image ls ${ORO_IMAGE}*
                 '''
                     // docker image push ${ORO_IMAGE,,}:$ORO_IMAGE_TAG
                     // docker image push ${ORO_IMAGE_INIT,,}:$ORO_IMAGE_TAG
