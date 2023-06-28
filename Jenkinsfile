@@ -36,9 +36,8 @@ pipeline {
                     readProperties(interpolate: true, defaults: defaultVariables + [ORO_IMAGE_TAG: env.BUILD_TAG], file: "$WORKSPACE/.env-build").each {key, value -> env[key] = value }
                     sh '''
                         printenv | sort
-                        rm -rf /tmp/${EXECUTOR_NUMBER}* ||:
-                        cp -rf $WORKSPACE /tmp/${EXECUTOR_NUMBER}
-                        cp -rf /tmp/${EXECUTOR_NUMBER} /tmp/${EXECUTOR_NUMBER}_1
+                        rm -rf $WORKSPACE/../$BUILD_TAG ||:
+                        cp -rf $WORKSPACE $WORKSPACE/../$BUILD_TAG
                     '''
                 }
             }
@@ -49,16 +48,14 @@ pipeline {
                     stages {
                         stage('Build:prod:source') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}") { sh '''COMPOSER_PROCESS_TIMEOUT=600 .build/scripts/composer.sh -b $ORO_BASELINE_VERSION -- '--no-dev install' '''}
+                                sh '''COMPOSER_PROCESS_TIMEOUT=600 .build/scripts/composer.sh -b $ORO_BASELINE_VERSION -- '--no-dev install' '''
                             }
                         }
                         stage('Build:prod:image') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}") {
-                                    sh '''
-                                        docker buildx build --pull --load --rm --build-arg ORO_BASELINE_VERSION -t ${ORO_IMAGE,,}:$ORO_IMAGE_TAG -f ".build/docker/Dockerfile" .
-                                    '''
-                                }
+                                sh '''
+                                    docker buildx build --pull --load --rm --build-arg ORO_BASELINE_VERSION -t ${ORO_IMAGE,,}:$ORO_IMAGE_TAG -f ".build/docker/Dockerfile" .
+                                '''
                             }
                         }
                         stage('Build:prod:install:de') {
@@ -67,17 +64,15 @@ pipeline {
                                 ORO_FORMATTING_CODE = 'de_DE'
                             }
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}") {
-                                    sh '''
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
-                                        rm -rf .build/docker/public_storage
-                                        rm -rf .build/docker/private_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
-                                        ORO_IMAGE_INIT=${ORO_IMAGE_INIT,,}-de DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose  -f .build/docker-compose/compose-orocommerce-application.yaml up --build --quiet-pull --exit-code-from backup backup
-                                    '''
-                                }
+                                sh '''
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
+                                    rm -rf .build/docker/public_storage
+                                    rm -rf .build/docker/private_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
+                                    ORO_IMAGE_INIT=${ORO_IMAGE_INIT,,}-de DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose  -f .build/docker-compose/compose-orocommerce-application.yaml up --build --quiet-pull --exit-code-from backup backup
+                                '''
                             }
                         }
                         stage('Build:prod:install:fr') {
@@ -86,32 +81,28 @@ pipeline {
                                 ORO_FORMATTING_CODE = 'fr_FR'
                             }
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}") {
-                                    sh '''
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
-                                        rm -rf .build/docker/public_storage
-                                        rm -rf .build/docker/private_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
-                                        ORO_IMAGE_INIT=${ORO_IMAGE_INIT,,}-fr DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose  -f .build/docker-compose/compose-orocommerce-application.yaml up --build --quiet-pull --exit-code-from backup backup
-                                    '''
-                                }
+                                sh '''
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --exit-code-from install --quiet-pull install
+                                    rm -rf .build/docker/public_storage
+                                    rm -rf .build/docker/private_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
+                                    ORO_IMAGE_INIT=${ORO_IMAGE_INIT,,}-fr DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose  -f .build/docker-compose/compose-orocommerce-application.yaml up --build --quiet-pull --exit-code-from backup backup
+                                '''
                             }
                         }
                         stage('Build:prod:install:en') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}") {
-                                    sh '''
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
-                                        docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --quiet-pull --exit-code-from install install
-                                        rm -rf .build/docker/public_storage
-                                        rm -rf .build/docker/private_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
-                                        docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
-                                        DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml build backup
-                                    '''
-                                }
+                                sh '''
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
+                                    docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --quiet-pull --exit-code-from install install
+                                    rm -rf .build/docker/public_storage
+                                    rm -rf .build/docker/private_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/public/media/ .build/docker/public_storage
+                                    docker cp prod_${EXECUTOR_NUMBER}-install-1:/var/www/oro/var/data/ .build/docker/private_storage
+                                    DB_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' prod_${EXECUTOR_NUMBER}-db-1) docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml build backup
+                                '''
                             }
                         }
                     }
@@ -123,7 +114,7 @@ pipeline {
                     stages {
                         stage('Build:test:source') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}_1") {
+                                dir("$WORKSPACE/../$BUILD_TAG") {
                                     sh '''COMPOSER_PROCESS_TIMEOUT=600 .build/scripts/composer.sh -b $ORO_BASELINE_VERSION '''
                                     // sh '.build/scripts/test_php-cs-fixer.sh -b $ORO_BASELINE_VERSION'
                                     sh '.build/scripts/test_phpcs.sh -b $ORO_BASELINE_VERSION'
@@ -133,12 +124,12 @@ pipeline {
                         }
                         stage('Build:test:unit') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}_1") {sh '.build/scripts/test_unit.sh -b $ORO_BASELINE_VERSION'}
+                                dir("$WORKSPACE/../$BUILD_TAG") {sh '.build/scripts/test_unit.sh -b $ORO_BASELINE_VERSION'}
                             }
                         }
                         stage('Build:test:image') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}_1") {
+                                dir("$WORKSPACE/../$BUILD_TAG") {
                                     sh '''
                                         docker buildx build --pull --load --rm --build-arg ORO_BASELINE_VERSION -t ${ORO_IMAGE_TEST,,}:$ORO_IMAGE_TAG -f ".build/docker/Dockerfile-test" .
                                     '''
@@ -147,7 +138,7 @@ pipeline {
                         }
                         stage('Build:test:install') {
                             steps {
-                                dir("/tmp/${EXECUTOR_NUMBER}_1") {
+                                dir("$WORKSPACE/../$BUILD_TAG") {
                                     sh '''
                                         echo "ORO_ENV=test" >> .build/docker-compose/.env
                                         docker compose -p test_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v
@@ -166,7 +157,7 @@ pipeline {
                         //         ORO_FUNCTIONAL_ARGS = ' '
                         //     }
                         //     steps {
-                        //         dir("/tmp/${EXECUTOR_NUMBER}_1") {
+                        //         dir("$WORKSPACE/../$BUILD_TAG") {
                         //             sh '''
                         //                 docker compose -p test_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --quiet-pull --exit-code-from functional functional
                         //             '''
@@ -221,7 +212,7 @@ pipeline {
             sh '''
                 rm -rf "logs"
                 mkdir -p "logs"
-                cp -rfv "/tmp/${EXECUTOR_NUMBER}_1/var/logs/"* "logs"/ ||:
+                cp -rfv "$WORKSPACE/../$BUILD_TAG/var/logs/"* "logs"/ ||:
                 printenv | grep ^ORO | sort | sed -e 's/=/="/;s/\$/"/' > "logs"/env-config
                 docker ps -a -f "name=.*_.*-.*" > logs/docker_ps.txt ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-.*" | xargs -r -I {} bash -c "docker logs {} > logs/docker_logs_{}.txt 2>&1" ||:
@@ -231,7 +222,7 @@ pipeline {
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/junit logs" ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/behat logs" ||:
                 docker compose -p prod_${EXECUTOR_NUMBER} --project-directory /tmp/${EXECUTOR_NUMBER}/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
-                docker compose -p test_${EXECUTOR_NUMBER} --project-directory /tmp/${EXECUTOR_NUMBER}_1/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
+                docker compose -p test_${EXECUTOR_NUMBER} --project-directory $WORKSPACE/../$BUILD_TAG/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
                 rm -rf /tmp/* ||:
             '''
             dir("logs") {
