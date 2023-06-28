@@ -36,7 +36,7 @@ pipeline {
                     readProperties(interpolate: true, defaults: defaultVariables + [ORO_IMAGE_TAG: env.BUILD_TAG], file: "$WORKSPACE/.env-build").each {key, value -> env[key] = value }
                     sh '''
                         printenv | sort
-                        rm -rf $WORKSPACE/* ||:
+                        rm -rf $WORKSPACE/${EXECUTOR_NUMBER}* ||:
                         cp -rf $WORKSPACE $WORKSPACE/${EXECUTOR_NUMBER}
                         cp -rf $WORKSPACE/${EXECUTOR_NUMBER} $WORKSPACE/${EXECUTOR_NUMBER}_1
                     '''
