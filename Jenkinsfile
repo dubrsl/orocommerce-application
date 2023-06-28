@@ -173,11 +173,9 @@ pipeline {
         //         ORO_BEHAT_ARGS = ' '
         //     }
         //     steps {
-        //         dir("/tmp/${EXECUTOR_NUMBER}") {
         //             sh '''
         //                 docker compose -p prod_${EXECUTOR_NUMBER} --project-directory .build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml up --quiet-pull --exit-code-from behat behat
         //             '''
-        //         }
         //     }
         // }
         stage('Push') {
@@ -221,9 +219,9 @@ pipeline {
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-functional-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/functional logs" ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/junit logs" ||:
                 docker ps -a --format '{{.Names}}' -f "name=.*_.*-behat-.*" | xargs -r -I {} bash -c "docker cp {}:/var/www/oro//var/logs/behat logs" ||:
-                docker compose -p prod_${EXECUTOR_NUMBER} --project-directory /tmp/${EXECUTOR_NUMBER}/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
+                docker compose -p prod_${EXECUTOR_NUMBER} --project-directory $WORKSPACE/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
                 docker compose -p test_${EXECUTOR_NUMBER} --project-directory $WORKSPACE/../$BUILD_TAG/.build/docker-compose -f .build/docker-compose/compose-orocommerce-application.yaml down -v ||:
-                rm -rf /tmp/* ||:
+                rm -rf $WORKSPACE/../${BUILD_TAG}* ||:
             '''
             dir("logs") {
                 archiveArtifacts defaultExcludes: false, allowEmptyArchive: true, artifacts: '**', excludes: '**/*.sql', caseSensitive: false
