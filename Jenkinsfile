@@ -37,7 +37,8 @@ pipeline {
                     sh '''
                         printenv | sort
                         rm -rf $WORKSPACE/${EXECUTOR_NUMBER}* ||:
-                        cp -rf $WORKSPACE $WORKSPACE/${EXECUTOR_NUMBER}
+                        mkdir -p $WORKSPACE/${EXECUTOR_NUMBER}
+                        cp -rf $WORKSPACE/* $WORKSPACE/${EXECUTOR_NUMBER}/
                         cp -rf $WORKSPACE/${EXECUTOR_NUMBER} $WORKSPACE/${EXECUTOR_NUMBER}_1
                     '''
                 }
